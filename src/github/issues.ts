@@ -59,14 +59,14 @@ ${refs}
 }
 
 /**
- * Mask a secret value, showing only first 4 and last 4 characters.
- * If the value is ≤ 12 chars, mask everything.
+ * Mask a secret value, showing only first 2 and last 2 characters.
+ * If the value is ≤ 8 chars, mask everything.
  */
 function maskSecret(evidence: string): string {
-  if (evidence.length <= 12) {
+  if (evidence.length <= 8) {
     return "*".repeat(evidence.length);
   }
-  return evidence.slice(0, 4) + "*".repeat(evidence.length - 8) + evidence.slice(-4);
+  return evidence.slice(0, 2) + "*".repeat(evidence.length - 4) + evidence.slice(-2);
 }
 
 // ─── Search existing issues by fingerprint ───────────────────────────

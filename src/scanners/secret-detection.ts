@@ -50,15 +50,12 @@ export const secretDetectionScanner: Scanner = {
       const relPath = relative(resolve(config.repoRoot), file);
 
       for (const [patternName, regex] of Object.entries(patterns)) {
-        // Reset regex lastIndex for each file
-        regex.lastIndex = 0;
-
         for (let i = 0; i < lines.length; i++) {
           regex.lastIndex = 0;
-          const match = regex.exec(lines[i]);
-          if (match) {
+          let match: RegExpExecArray | null;
+          while ((match = regex.exec(lines[i])) !== null) {
             findings.push({
-              rawId: `secret-${patternName}-${relPath}-${i + 1}`,
+              rawId: `secret-${patternName}-${relPath}-${i + 1}-${match.index}`,
               title: `Potential secret detected: ${patternName}`,
               severity: "high",
               confidence: "medium",

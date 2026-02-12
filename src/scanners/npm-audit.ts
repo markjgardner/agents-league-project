@@ -44,7 +44,7 @@ export const npmAuditScanner: Scanner = {
       const minOrder = SEVERITY_ORDER[config.scanners.npmAudit.minSeverity];
       for (const [name, vuln] of Object.entries(audit.vulnerabilities ?? {})) {
         const severity = SEVERITY_MAP[vuln.severity] ?? "low";
-        if (SEVERITY_ORDER[severity] > minOrder) continue;
+        if (SEVERITY_ORDER[severity] < minOrder) continue;
 
         const advisory = vuln.via.find((v) => typeof v.title === "string");
         const title = advisory?.title ?? `Vulnerability in ${name}`;

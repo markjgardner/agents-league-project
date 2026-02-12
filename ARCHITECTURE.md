@@ -638,7 +638,7 @@ jobs:
 }
 ```
 
-**Key design decision**: No runtime dependencies beyond `glob` for file matching. The GitHub API is called via `node:https` (native) to keep the dependency surface minimal — fitting for a security tool.
+**Key design decision**: Runtime dependencies are `glob` for file matching and `@octokit/rest` for GitHub API integration. Using Octokit provides type-safe API calls, automatic pagination, and built-in retry/rate-limit handling — critical for reliable issue management in a security tool.
 
 ---
 
