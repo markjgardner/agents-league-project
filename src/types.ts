@@ -3,6 +3,7 @@
 export type Severity = "critical" | "high" | "medium" | "low";
 export type Confidence = "high" | "medium" | "low";
 export type Category = "dependency" | "secret" | "http";
+export type PersonaName = "default" | "chuck_norris";
 
 // ─── Core Finding Schema ─────────────────────────────────────────────
 
@@ -113,6 +114,9 @@ export interface RedTeamConfig {
     /** Close issues whose findings are no longer present */
     autoClose: boolean;
   };
+
+  /** Persona for issue writing style: "default" | "chuck_norris" */
+  persona: PersonaName;
 }
 
 // ─── Dedup Result ────────────────────────────────────────────────────

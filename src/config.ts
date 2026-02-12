@@ -1,4 +1,4 @@
-import { RedTeamConfig, Severity } from "./types.js";
+import { RedTeamConfig, Severity, PersonaName } from "./types.js";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -28,6 +28,7 @@ const DEFAULT_CONFIG: RedTeamConfig = {
     assignees: [],
     autoClose: false,
   },
+  persona: "default",
 };
 
 export function loadConfig(overridePath?: string): RedTeamConfig {
@@ -71,6 +72,9 @@ export function loadConfig(overridePath?: string): RedTeamConfig {
       autoClose:
         (issues.autoClose as boolean) ?? DEFAULT_CONFIG.issues.autoClose,
     },
+    persona: (process.env.REDTEAM_PERSONA as PersonaName) ??
+      (fileConfig.persona as PersonaName) ??
+      DEFAULT_CONFIG.persona,
   };
 }
 

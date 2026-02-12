@@ -21,6 +21,7 @@ function makeConfig(overrides?: Partial<RedTeamConfig["scanners"]["secretDetecti
       httpScan: { enabled: false, target: "http://localhost:3000", paths: [] },
     },
     issues: { enabled: false, extraLabels: [], maxPerRun: 10, assignees: [], autoClose: false },
+    persona: "default",
   };
 }
 
