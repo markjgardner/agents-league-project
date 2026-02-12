@@ -1,0 +1,30 @@
+name: RedTeam Security Scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"       # Weekly Monday 6 AM UTC
+  push:
+    branches: [main]
+  workflow_dispatch:            # Manual trigger
+
+permissions:
+  issues: write                 # Create/update issues
+  contents: read                # Read repo for scanning
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Security Scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx src/index.ts
