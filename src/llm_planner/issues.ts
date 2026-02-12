@@ -76,7 +76,7 @@ function buildRemediationBlock(hypothesis: AttackHypothesis): string {
  */
 function mapCategory(category: string): RawFinding["category"] {
   const mapping: Record<string, RawFinding["category"]> = {
-    injection: "secret",
+    injection: "http",
     "auth-bypass": "http",
     "info-disclosure": "http",
     misconfiguration: "http",

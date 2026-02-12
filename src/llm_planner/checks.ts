@@ -12,7 +12,7 @@ import { logger } from "../utils/logger.js";
  */
 const STATIC_CHECK_PATTERNS: Record<string, Array<{ name: string; pattern: RegExp }>> = {
   injection: [
-    { name: "string-concatenated-query", pattern: /['"].*(?:SELECT|INSERT|UPDATE|DELETE)\b.*['\"]\s*\+|\+\s*['"].*(?:SELECT|INSERT|UPDATE|DELETE)/gi },
+    { name: "string-concatenated-query", pattern: /['"].*(?:SELECT|INSERT|UPDATE|DELETE)\b.*['"]\s*\+|\+\s*['"].*(?:SELECT|INSERT|UPDATE|DELETE)/gi },
     { name: "unsanitized-input", pattern: /req\.(?:body|query|params)\s*\[/gi },
     { name: "eval-usage", pattern: /\beval\s*\(/gi },
   ],
@@ -67,8 +67,6 @@ export function runStaticChecks(
 
       // Run category-specific patterns
       for (const { name, pattern } of categoryPatterns) {
-        // Reset regex state
-        pattern.lastIndex = 0;
         const matches = content.match(pattern);
         if (matches) {
           locations.push(filePath);

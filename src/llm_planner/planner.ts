@@ -209,8 +209,9 @@ export class LLMAttackPlanner {
         if (entry.isDirectory()) {
           this.walkDir(fullPath, rootDir, result);
         } else if (entry.isFile()) {
-          const ext = "." + entry.name.split(".").pop();
-          if (SECURITY_RELEVANT_EXTENSIONS.has(ext)) {
+          const dotIndex = entry.name.lastIndexOf(".");
+          const ext = dotIndex > 0 ? entry.name.slice(dotIndex) : "";
+          if (ext && SECURITY_RELEVANT_EXTENSIONS.has(ext)) {
             const stat = statSync(fullPath);
             if (stat.size < 100_000) {
               // Skip very large files
