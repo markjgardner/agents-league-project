@@ -1,0 +1,25 @@
+{
+  "repoRoot": "example",
+  "scanners": {
+    "npmAudit": {
+      "enabled": false
+    },
+    "secretDetection": {
+      "enabled": true,
+      "include": ["**/*"],
+      "exclude": ["node_modules/**"]
+    },
+    "httpScan": {
+      "enabled": true,
+      "target": "http://127.0.0.1:4200",
+      "paths": ["/", "/.env", "/.git/config", "/debug"]
+    }
+  },
+  "issues": {
+    "enabled": true,
+    "extraLabels": [],
+    "maxPerRun": 10,
+    "assignees": [],
+    "autoClose": false
+  }
+}
