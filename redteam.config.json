@@ -1,0 +1,41 @@
+{
+  "repoRoot": ".",
+  "github": {
+    "owner": "",
+    "repo": ""
+  },
+  "scanners": {
+    "npmAudit": {
+      "enabled": true,
+      "minSeverity": "medium"
+    },
+    "secretDetection": {
+      "enabled": true,
+      "include": ["**/*"],
+      "exclude": [
+        "node_modules/**",
+        ".git/**",
+        "*.lock",
+        "dist/**",
+        "*.png",
+        "*.jpg",
+        "*.gif",
+        "*.woff",
+        "*.woff2"
+      ],
+      "customPatterns": {}
+    },
+    "httpScan": {
+      "enabled": false,
+      "target": "http://localhost:3000",
+      "paths": ["/", "/.env", "/.git/config", "/debug", "/api"]
+    }
+  },
+  "issues": {
+    "enabled": true,
+    "extraLabels": [],
+    "maxPerRun": 10,
+    "assignees": [],
+    "autoClose": false
+  }
+}

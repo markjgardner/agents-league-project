@@ -1,0 +1,22 @@
+{
+  "name": "redteam-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scan": "tsx src/index.ts",
+    "scan:dry": "tsx src/index.ts --no-issues --json",
+    "build": "tsc",
+    "lint": "eslint src/",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "glob": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0"
+  }
+}
