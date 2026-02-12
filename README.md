@@ -194,6 +194,94 @@ export REDTEAM_PERSONA=chuck_norris
 - Scan results, severity values, fingerprints, and evidence remain identical
 - No insults, profanity, or disrespect toward individuals — the attitude targets the vulnerability, not the developer
 
+## 🧠 LLM Attack Planner (Optional)
+
+An **optional** AI-powered stage that uses a large language model to review your codebase and generate structured security test hypotheses. This is **defensive use only** — no exploitation, no external targeting.
+
+### What It Does
+
+1. **Reads** your repo structure and security-relevant source files (routes, controllers, auth, config, database)
+2. **Generates** structured `AttackHypothesis` objects: what might be vulnerable, why, and how to safely verify
+3. **Validates** each hypothesis using deterministic static checks (regex/AST patterns, config inspection)
+4. **Creates issues** only when evidence is confirmed — no speculation, no false alarms
+
+### Safety Guardrails
+
+| Guardrail | Enforcement |
+|-----------|-------------|
+| **Disabled by default** | Requires `REDTEAM_LLM_ENABLED=true` explicitly |
+| **No external targets** | Dynamic probes only run against `REDTEAM_TARGET_ALLOWLIST` (default: localhost) |
+| **No exploit payloads** | LLM system prompt prohibits weaponized output |
+| **Output validation** | All LLM responses are validated against a strict JSON schema |
+| **Evidence required** | No evidence → no issue created (deterministic confirmation) |
+| **Rate limited** | Max hypotheses per run, max files analyzed, request timeouts |
+| **CI safety** | Only runs via `workflow_dispatch` with explicit opt-in and secrets present |
+
+### How to Enable Locally
+
+```bash
+# 1. Set your LLM API key
+export REDTEAM_LLM_KEY="sk-..."
+
+# 2. Enable the planner
+export REDTEAM_LLM_ENABLED=true
+
+# 3. (Optional) Set model and endpoint
+export REDTEAM_LLM_MODEL=gpt-4o-mini
+export REDTEAM_LLM_ENDPOINT=https://api.openai.com/v1
+
+# 4. Run a dry-run scan
+npm run scan:dry
+```
+
+### How to Run in CI
+
+The LLM planner only runs in CI when **all** of these conditions are met:
+1. Triggered via `workflow_dispatch` (manual trigger)
+2. `enable_llm_planner` input is set to `"true"`
+3. `REDTEAM_LLM_KEY` secret is configured in the repository
+
+This prevents accidental LLM usage on push or schedule triggers.
+
+### Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REDTEAM_LLM_ENABLED` | Enable/disable the LLM planner | `false` |
+| `REDTEAM_LLM_MODEL` | LLM model name | `gpt-4o-mini` |
+| `REDTEAM_LLM_ENDPOINT` | API endpoint URL | OpenAI default |
+| `REDTEAM_LLM_KEY` | API key (env var only, never in config) | _(none)_ |
+| `REDTEAM_LLM_MAX_FILES` | Max files to analyze | `20` |
+| `REDTEAM_LLM_MAX_TOKENS` | Max response tokens | `4096` |
+| `REDTEAM_TARGET_ALLOWLIST` | Allowed hostnames for dynamic probes | `localhost,127.0.0.1,::1` |
+
+### AttackHypothesis Schema
+
+```typescript
+interface AttackHypothesis {
+  id: string;                   // e.g., "HYPO-001"
+  title: string;                // Short descriptive title
+  category: string;             // e.g., "injection", "auth-bypass"
+  risk: "critical" | "high" | "medium" | "low";
+  confidence: "high" | "medium" | "low";
+  rationale: string;            // Why the code suggests this
+  evidence_to_collect: string;  // What would prove it
+  safe_test_plan: string;       // Non-destructive verification steps
+  likely_locations: string[];   // Files/functions/routes
+  references: string[];         // OWASP/CWE IDs
+}
+```
+
+### Issue Quality
+
+Issues created from LLM hypotheses include:
+- Hypothesis summary and category
+- Code-grounded rationale (specific files/functions)
+- Evidence collected by deterministic tooling
+- Safe reproduction steps for demo environments
+- Remediation guidance with OWASP/CWE references
+- Labels: `security`, `severity:<level>`, `category:<type>`, `tool:llm-planner`
+
 ## Development
 
 ```bash

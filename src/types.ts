@@ -14,7 +14,7 @@ export interface Finding {
   severity: Severity;
   confidence: Confidence;
   /** Which scanner produced this */
-  tool: "npm-audit" | "secret-detection" | "http-scan";
+  tool: "npm-audit" | "secret-detection" | "http-scan" | "llm-planner";
   category: Category;
   /** Where in the repo or URL the issue was found */
   location: Location;
@@ -115,6 +115,19 @@ export interface RedTeamConfig {
     autoClose: boolean;
     /** When set, this label is added to all created issues (used in demo mode) */
     demoLabel?: string;
+  };
+
+  /** LLM planner settings (optional) */
+  llmPlanner?: {
+    enabled: boolean;
+    model: string;
+    endpoint?: string;
+    apiKey?: string;
+    maxFiles: number;
+    maxTokens: number;
+    timeoutMs: number;
+    targetAllowlist: string[];
+    maxHypotheses: number;
   };
 
   /** Persona for issue writing style: "default" | "chuck_norris" */
