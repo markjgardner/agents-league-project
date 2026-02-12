@@ -90,6 +90,7 @@ No configuration needed — it uses the built-in `GITHUB_TOKEN` and auto-detects
 | `GITHUB_TOKEN` | GitHub token for issue creation | _(required for issue creation)_ |
 | `GITHUB_REPOSITORY` | `owner/repo` format (auto-set in Actions) | _(auto-detected)_ |
 | `REDTEAM_REPO_ROOT` | Path to repo to scan | `.` |
+| `DEMO_ISSUE_LABEL` | Label to apply in demo mode (e.g. `demo:redteam-example`) | _(none)_ |
 | `LOG_LEVEL` | Logging verbosity: `debug`, `info`, `warn`, `error` | `info` |
 
 ### CLI Flags
@@ -101,6 +102,7 @@ Options:
   --no-issues    Skip issue creation (scan only)
   --json         Output results as JSON
   --config PATH  Path to config file (default: redteam.config.json)
+  --demo         Apply demo:redteam-example label to all created issues
 ```
 
 ## Finding Schema
@@ -180,6 +182,41 @@ npm test
 
 # Build
 npm run build
+```
+
+## Example App + Demo Workflow
+
+The `example/` directory contains an **intentionally vulnerable** demo app
+that exercises all scanners (secret detection + HTTP scan). Issues created
+during demo runs are tagged with the label **`demo:redteam-example`** so
+they can be bulk-identified and cleaned up.
+
+### Run the demo locally
+
+```bash
+# Scan secrets only (no server needed)
+REDTEAM_REPO_ROOT=example npx tsx src/index.ts --demo --no-issues --json
+
+# Full scan with HTTP server
+node example/server.cjs &
+npx tsx src/index.ts --demo --no-issues --json --config example/redteam.example.json
+kill %1
+```
+
+### Run the demo in CI
+
+Trigger the **RedTeam Example Demo** workflow manually from the Actions tab
+(`workflow_dispatch`). It will create issues labeled `demo:redteam-example`.
+
+### Clean up demo issues
+
+To close all demo issues, re-run the workflow with the **cleanup** input
+set to `true`, or use the GitHub CLI:
+
+```bash
+gh issue list --label "demo:redteam-example" --state open --json number \
+  | jq -r '.[].number' \
+  | xargs -I{} gh issue close {} --reason "not planned"
 ```
 
 ## License
