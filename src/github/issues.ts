@@ -85,10 +85,15 @@ export async function fetchExistingIssuesByFingerprint(
   const fingerprints = new Map<string, number>();
 
   // Paginate through all open issues with our label
+  // When a demoLabel is set, also filter by that label so demo issues
+  // don't collide with real issues (and vice versa).
+  const labelFilter = config.issues.demoLabel
+    ? `redteam-agent,${config.issues.demoLabel}`
+    : "redteam-agent";
   const iterator = octokit.paginate.iterator(octokit.issues.listForRepo, {
     owner,
     repo,
-    labels: "redteam-agent",
+    labels: labelFilter,
     state: "open",
     per_page: 100,
   });
@@ -128,6 +133,7 @@ export async function createIssueForFinding(
     "redteam-agent",
     `severity:${finding.severity}`,
     ...config.issues.extraLabels,
+    ...(config.issues.demoLabel ? [config.issues.demoLabel] : []),
   ];
 
   const response = await octokit.issues.create({

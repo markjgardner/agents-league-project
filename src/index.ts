@@ -4,14 +4,21 @@ import { deduplicate } from "./dedup.js";
 import { processIssues } from "./github/issues.js";
 import { ensureLabels } from "./github/labels.js";
 import { logger } from "./utils/logger.js";
+import { DEMO_ISSUE_LABEL } from "./constants.js";
 import type { Scanner, Finding, IssueResult } from "./types.js";
 
 async function main(): Promise<void> {
   const noIssues = process.argv.includes("--no-issues");
   const jsonOutput = process.argv.includes("--json");
+  const demoMode = process.argv.includes("--demo");
   const configPath = getArgValue("--config");
 
   const config = loadConfig(configPath);
+
+  // --demo flag activates demo mode: applies DEMO_ISSUE_LABEL to all created issues
+  if (demoMode && !config.issues.demoLabel) {
+    config.issues.demoLabel = DEMO_ISSUE_LABEL;
+  }
 
   if (noIssues) {
     config.issues.enabled = false;
