@@ -9,7 +9,7 @@ demonstrate the RedTeam Agent's scanning capabilities. It is designed for
 | Scanner | Trigger | Expected severity |
 |---------|---------|-------------------|
 | secret-detection | `secrets.example` contains fake AWS keys and a generic password | critical / high |
-| http-scan | `server.js` serves responses without security headers and exposes `/.env` | high / medium |
+| http-scan | `server.cjs` serves responses without security headers and exposes `/.env` | high / medium |
 
 ## Running locally
 
