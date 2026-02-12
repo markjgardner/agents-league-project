@@ -71,6 +71,10 @@ export function loadConfig(overridePath?: string): RedTeamConfig {
         (issues.assignees as string[]) ?? DEFAULT_CONFIG.issues.assignees,
       autoClose:
         (issues.autoClose as boolean) ?? DEFAULT_CONFIG.issues.autoClose,
+      demoLabel:
+        process.env.DEMO_ISSUE_LABEL ||
+        (issues.demoLabel as string | undefined) ||
+        undefined,
     },
     persona: (process.env.REDTEAM_PERSONA as PersonaName) ??
       (fileConfig.persona as PersonaName) ??

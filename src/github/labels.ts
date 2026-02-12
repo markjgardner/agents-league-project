@@ -80,6 +80,27 @@ export async function ensureLabels(config: RedTeamConfig): Promise<void> {
       }
     }
   }
+
+  // Ensure the demo label exists when in demo mode
+  if (config.issues.demoLabel) {
+    const demoLabel = config.issues.demoLabel;
+    try {
+      await octokit.issues.getLabel({ owner, repo, name: demoLabel });
+    } catch (err: unknown) {
+      if (isOctokitError(err) && err.status === 404) {
+        await octokit.issues.createLabel({
+          owner,
+          repo,
+          name: demoLabel,
+          color: "e4e669",
+          description: "Demo/example run — safe to bulk-close",
+        });
+        logger.info("Created demo label", { label: demoLabel });
+      } else {
+        throw err;
+      }
+    }
+  }
 }
 
 /** Type guard for Octokit HTTP errors */

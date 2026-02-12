@@ -1,0 +1,123 @@
+# ──────────────────────────────────────────────────────────────────────
+# RedTeam Agent — Example / Demo Workflow
+#
+# Runs the RedTeam Agent against the intentionally vulnerable app in
+# /example and files findings as GitHub Issues with the label
+# "demo:redteam-example" so they can be bulk-identified and cleaned up.
+# ──────────────────────────────────────────────────────────────────────
+name: RedTeam Example Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      cleanup:
+        description: "Close all open issues with the demo:redteam-example label"
+        required: false
+        type: boolean
+        default: false
+
+  pull_request:
+    paths:
+      - "example/**"
+      - "src/**"
+
+# Least-privilege permissions.
+# contents:read  — checkout the repository code for scanning
+# issues:write   — required so GITHUB_TOKEN can create/update/close issues
+# See: https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  # ── Scan job ──────────────────────────────────────────────────────
+  scan:
+    # Skip the scan job when the cleanup input is true
+    if: ${{ github.event.inputs.cleanup != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Start the intentionally insecure demo server in the background
+      - name: Start example server
+        run: |
+          node example/server.cjs &
+          sleep 2
+          curl -sf http://127.0.0.1:4200/ > /dev/null
+          echo "Demo server is up"
+
+      # Run the RedTeam Agent in demo mode.
+      # --demo flag ensures the DEMO_ISSUE_LABEL is applied.
+      # On pull_request events from forks, issue creation is disabled
+      # to prevent untrusted code from creating issues.
+      - name: Run RedTeam Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEMO_ISSUE_LABEL: "demo:redteam-example"
+        run: |
+          ARGS="--demo --json --config example/redteam.example.json"
+
+          # Disable issue creation on PRs from forks
+          if [[ "${{ github.event_name }}" == "pull_request" && \
+                "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]]; then
+            echo "Fork PR detected — skipping issue creation"
+            ARGS="$ARGS --no-issues"
+          fi
+
+          npx tsx src/index.ts $ARGS | tee /tmp/redteam-results.json
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redteam-example-results
+          path: /tmp/redteam-results.json
+          retention-days: 14
+
+  # ── Cleanup job ───────────────────────────────────────────────────
+  # Closes all open issues with the demo:redteam-example label.
+  # Triggered only via workflow_dispatch with cleanup=true.
+  cleanup:
+    if: ${{ github.event.inputs.cleanup == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close demo issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'demo:redteam-example';
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: label,
+              state: 'open',
+              per_page: 100,
+            });
+
+            core.info(`Found ${issues.length} open demo issues to close`);
+
+            for (const issue of issues) {
+              if (issue.pull_request) continue; // skip PRs
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '🧹 **Auto-closed by demo cleanup workflow**\n\nThis issue was created during a demo run and is being cleaned up.',
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'not_planned',
+              });
+              core.info(`Closed issue #${issue.number}: ${issue.title}`);
+            }

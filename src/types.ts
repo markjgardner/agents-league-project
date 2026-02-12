@@ -113,6 +113,8 @@ export interface RedTeamConfig {
     assignees: string[];
     /** Close issues whose findings are no longer present */
     autoClose: boolean;
+    /** When set, this label is added to all created issues (used in demo mode) */
+    demoLabel?: string;
   };
 
   /** Persona for issue writing style: "default" | "chuck_norris" */
