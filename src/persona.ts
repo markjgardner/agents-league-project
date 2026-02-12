@@ -64,7 +64,7 @@ const chuckNorrisPersona: Persona = {
   openingParagraph(finding) {
     const options = CHUCK_OPENINGS[finding.severity];
     // Deterministic pick based on fingerprint to keep it stable across runs
-    const index = parseInt(finding.fingerprint.slice(0, 8), 16) % options.length;
+    const index = (parseInt(finding.fingerprint.slice(0, 8), 16) || 0) % options.length;
     return `> ${options[index]}\n`;
   },
   evidenceHeader() {

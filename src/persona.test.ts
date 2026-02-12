@@ -1,6 +1,6 @@
 import { getPersona } from "./persona.js";
 import { buildIssueBody, FINGERPRINT_REGEX } from "./github/issues.js";
-import type { Finding } from "./types.js";
+import type { Finding, PersonaName } from "./types.js";
 
 const baseFinding: Finding = {
   id: "abcdef123456",
@@ -128,8 +128,7 @@ describe("Persona abstraction", () => {
 
   describe("getPersona fallback", () => {
     it("returns default persona for unknown names", () => {
-      // Cast to bypass type checking for the test
-      const persona = getPersona("nonexistent" as any);
+      const persona = getPersona("nonexistent" as PersonaName);
       expect(persona.issueTitle(baseFinding)).toBe("[HIGH] Prototype Pollution in lodash");
     });
   });
