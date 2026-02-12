@@ -31,7 +31,9 @@ function buildIssueBody(finding: Finding, persona?: Persona): string {
 
   const opening = tone.openingParagraph(finding);
   const openingBlock = opening ? `\n${opening}\n` : "";
-  const closing = tone.closingLine();
+  const funFact = tone.funFact(finding);
+  const funFactBlock = funFact ? `\n${funFact}` : "";
+  const closing = tone.closingLine(finding);
 
   return `${FINGERPRINT_PREFIX}${finding.fingerprint}${FINGERPRINT_SUFFIX}
 ${openingBlock}
@@ -58,7 +60,7 @@ ${finding.remediation}
 ### References
 
 ${refs}
-
+${funFactBlock}
 ---
 *Filed by RedTeam Agent • Finding ID: \`${finding.id}\` • Fingerprint: \`${finding.fingerprint.slice(0, 12)}\`*
 ${closing}

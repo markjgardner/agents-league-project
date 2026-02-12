@@ -36,19 +36,24 @@ describe("Persona abstraction", () => {
       expect(persona.remediationHeader()).toBe("### Remediation");
     });
 
+    it("returns empty fun fact", () => {
+      expect(persona.funFact(baseFinding)).toBe("");
+    });
+
     it("returns empty closing line", () => {
-      expect(persona.closingLine()).toBe("");
+      expect(persona.closingLine(baseFinding)).toBe("");
     });
   });
 
   describe("chuck_norris persona", () => {
     const persona = getPersona("chuck_norris");
 
-    it("includes 'Chuck Norris Was Here' in issue title", () => {
+    it("includes emoji and a Chuck Norris suffix in issue title", () => {
       const title = persona.issueTitle(baseFinding);
       expect(title).toContain("[HIGH]");
-      expect(title).toContain("Chuck Norris Was Here");
+      expect(title).toContain("🥋");
       expect(title).toContain(baseFinding.title);
+      expect(title).toMatch(/—\s.+/); // has a suffix after the em-dash
     });
 
     it("produces a non-empty opening paragraph", () => {
@@ -57,17 +62,43 @@ describe("Persona abstraction", () => {
       expect(opening).toContain(">");
     });
 
-    it("uses Chuck Norris evidence header", () => {
-      expect(persona.evidenceHeader()).toContain("Proof");
+    it("uses Chuck Norris evidence header with emoji", () => {
+      const header = persona.evidenceHeader();
+      expect(header).toContain("Proof");
+      expect(header).toContain("🔍");
     });
 
-    it("uses Chuck Norris remediation header", () => {
-      expect(persona.remediationHeader()).toContain("Fix This");
+    it("uses Chuck Norris remediation header with emoji", () => {
+      const header = persona.remediationHeader();
+      expect(header).toContain("Fix This");
+      expect(header).toContain("💪");
     });
 
-    it("produces a non-empty closing line", () => {
-      const closing = persona.closingLine();
-      expect(closing).toContain("Chuck Norris");
+    it("produces a non-empty fun fact with Chuck Norris theme", () => {
+      const fact = persona.funFact(baseFinding);
+      expect(fact).toContain("Chuck Norris Fun Fact");
+      expect(fact).toContain("💡");
+      expect(fact.length).toBeGreaterThan(0);
+    });
+
+    it("produces a non-empty closing line with Chuck Norris theme", () => {
+      const closing = persona.closingLine(baseFinding);
+      expect(closing).toContain("🥋");
+      expect(closing.length).toBeGreaterThan(0);
+    });
+
+    it("has at least 5 opening quips per severity", () => {
+      for (const sev of ["critical", "high", "medium", "low"] as const) {
+        const finding = { ...baseFinding, severity: sev };
+        // Generate openings with different fingerprints to prove variety
+        const seen = new Set<string>();
+        for (let i = 0; i < 20; i++) {
+          const fp = i.toString(16).padStart(8, "0").repeat(8);
+          const tweaked = { ...finding, fingerprint: fp };
+          seen.add(persona.openingParagraph(tweaked));
+        }
+        expect(seen.size).toBeGreaterThanOrEqual(3);
+      }
     });
 
     it("scales tone with severity", () => {
@@ -78,6 +109,26 @@ describe("Persona abstraction", () => {
       // Both should be non-empty but different
       expect(criticalOpening.length).toBeGreaterThan(0);
       expect(lowOpening.length).toBeGreaterThan(0);
+    });
+
+    it("rotates closing lines deterministically based on fingerprint", () => {
+      const seen = new Set<string>();
+      for (let i = 0; i < 20; i++) {
+        const fp = i.toString(16).padStart(8, "0").repeat(8);
+        const tweaked = { ...baseFinding, fingerprint: fp };
+        seen.add(persona.closingLine(tweaked));
+      }
+      expect(seen.size).toBeGreaterThanOrEqual(2);
+    });
+
+    it("rotates fun facts deterministically based on fingerprint", () => {
+      const seen = new Set<string>();
+      for (let i = 0; i < 20; i++) {
+        const fp = i.toString(16).padStart(8, "0").repeat(8);
+        const tweaked = { ...baseFinding, fingerprint: fp };
+        seen.add(persona.funFact(tweaked));
+      }
+      expect(seen.size).toBeGreaterThanOrEqual(3);
     });
   });
 
@@ -123,6 +174,18 @@ describe("Persona abstraction", () => {
       // But both contain the same core finding data
       expect(chuckBody).toContain(baseFinding.evidence);
       expect(defaultBody).toContain(baseFinding.evidence);
+    });
+
+    it("chuck_norris body includes a fun fact section", () => {
+      const persona = getPersona("chuck_norris");
+      const body = buildIssueBody(baseFinding, persona);
+      expect(body).toContain("Chuck Norris Fun Fact");
+    });
+
+    it("default body does not include a fun fact section", () => {
+      const persona = getPersona("default");
+      const body = buildIssueBody(baseFinding, persona);
+      expect(body).not.toContain("Chuck Norris Fun Fact");
     });
   });
 
