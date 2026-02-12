@@ -46,7 +46,7 @@ export function sanitizeLLMOutput(raw: string): string {
   // Strip bash/shell command blocks that aren't safe inspection commands
   const dangerousPatterns = [
     /```bash\s*\n.*?(curl|wget|nc|netcat|nmap|sqlmap|nikto|burp)\s+(?!localhost|127\.0\.0\.1).*?```/gis,
-    /rm\s+-rf\s+/gi,
+    /rm\s+-rf\s+\S*/gi,
     /;\s*(drop|delete|truncate)\s+/gi,
   ];
 

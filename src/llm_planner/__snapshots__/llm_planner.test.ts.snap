@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Golden planner response (snapshot) produces deterministic output from mocked response 1`] = `
+[
+  {
+    "category": "injection",
+    "confidence": "medium",
+    "evidence_to_collect": "Check if parameterized queries are used in src/db.ts",
+    "id": "HYPO-001",
+    "likely_locations": [
+      "src/db.ts:queryUser",
+    ],
+    "rationale": "The function \`queryUser\` in \`src/db.ts\` concatenates user input directly into a SQL string.",
+    "references": [
+      "CWE-89",
+      "OWASP A03:2021",
+    ],
+    "risk": "high",
+    "safe_test_plan": "Grep for string concatenation patterns in SQL query builders",
+    "title": "SQL Injection in user query",
+  },
+  {
+    "category": "auth-bypass",
+    "confidence": "high",
+    "evidence_to_collect": "Check if auth middleware is applied to /admin route",
+    "id": "HYPO-002",
+    "likely_locations": [
+      "src/routes.ts:/admin",
+    ],
+    "rationale": "The route \`/admin\` in \`src/routes.ts\` does not use auth middleware.",
+    "references": [
+      "CWE-306",
+    ],
+    "risk": "critical",
+    "safe_test_plan": "Inspect route definitions for middleware usage",
+    "title": "Missing authentication on admin route",
+  },
+]
+`;

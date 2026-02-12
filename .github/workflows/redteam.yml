@@ -6,6 +6,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:            # Manual trigger
+    inputs:
+      enable_llm_planner:
+        description: "Enable LLM Attack Planner stage"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   issues: write                 # Create/update issues
@@ -28,4 +37,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REDTEAM_PERSONA: chuck_norris
+          # LLM planner: only enabled via workflow_dispatch with explicit opt-in
+          # and only when the LLM key secret is available
+          REDTEAM_LLM_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.enable_llm_planner == 'true' && secrets.REDTEAM_LLM_KEY != '' }}
+          REDTEAM_LLM_KEY: ${{ secrets.REDTEAM_LLM_KEY }}
+          REDTEAM_LLM_MODEL: ${{ secrets.REDTEAM_LLM_MODEL || 'gpt-4o-mini' }}
+          REDTEAM_LLM_ENDPOINT: ${{ secrets.REDTEAM_LLM_ENDPOINT || '' }}
         run: npx tsx src/index.ts

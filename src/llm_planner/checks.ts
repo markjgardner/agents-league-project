@@ -12,7 +12,7 @@ import { logger } from "../utils/logger.js";
  */
 const STATIC_CHECK_PATTERNS: Record<string, Array<{ name: string; pattern: RegExp }>> = {
   injection: [
-    { name: "string-concatenated-query", pattern: /(?:query|sql|exec)\s*\(\s*[`'"].*\$\{|.*\+\s*(?:req|input|user|param)/gi },
+    { name: "string-concatenated-query", pattern: /['"].*(?:SELECT|INSERT|UPDATE|DELETE)\b.*['\"]\s*\+|\+\s*['"].*(?:SELECT|INSERT|UPDATE|DELETE)/gi },
     { name: "unsanitized-input", pattern: /req\.(?:body|query|params)\s*\[/gi },
     { name: "eval-usage", pattern: /\beval\s*\(/gi },
   ],
