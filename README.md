@@ -79,7 +79,8 @@ No configuration needed — it uses the built-in `GITHUB_TOKEN` and auto-detects
     "maxPerRun": 10,
     "assignees": [],
     "autoClose": false
-  }
+  },
+  "persona": "default"
 }
 ```
 
@@ -91,6 +92,7 @@ No configuration needed — it uses the built-in `GITHUB_TOKEN` and auto-detects
 | `GITHUB_REPOSITORY` | `owner/repo` format (auto-set in Actions) | _(auto-detected)_ |
 | `REDTEAM_REPO_ROOT` | Path to repo to scan | `.` |
 | `DEMO_ISSUE_LABEL` | Label to apply in demo mode (e.g. `demo:redteam-example`) | _(none)_ |
+| `REDTEAM_PERSONA` | Issue writing style: `default` or `chuck_norris` | `default` |
 | `LOG_LEVEL` | Logging verbosity: `debug`, `info`, `warn`, `error` | `info` |
 
 ### CLI Flags
@@ -167,6 +169,30 @@ Issues are deduplicated using a fingerprint-based strategy:
 3. On subsequent runs, existing open issues are matched by fingerprint
 4. New findings get new issues; existing findings are skipped
 5. If `autoClose` is enabled, issues whose findings disappear are auto-closed
+
+## 🎬 Chuck Norris Mode (Optional)
+
+A high-confidence, no-nonsense persona for GitHub issue writeups. Designed for demos, presentations, and engagement — Chuck Norris mode adds cinematic attitude to your security findings.
+
+**Why it exists:** Fun, demos, and making security findings impossible to ignore.
+
+**How to enable it:**
+
+```bash
+# Via environment variable
+export REDTEAM_PERSONA=chuck_norris
+
+# Or in redteam.config.json
+{ "persona": "chuck_norris" }
+```
+
+**What changes:**
+- Issue titles, opening paragraphs, section headers, and closing lines adopt a confident, declarative tone
+- Tone scales with severity (playful for LOW, urgent for CRITICAL)
+
+**What does NOT change:**
+- Scan results, severity values, fingerprints, and evidence remain identical
+- No insults, profanity, or disrespect toward individuals — the attitude targets the vulnerability, not the developer
 
 ## Development
 

@@ -3,6 +3,7 @@
 export type Severity = "critical" | "high" | "medium" | "low";
 export type Confidence = "high" | "medium" | "low";
 export type Category = "dependency" | "secret" | "http";
+export type PersonaName = "default" | "chuck_norris";
 
 // ─── Core Finding Schema ─────────────────────────────────────────────
 
@@ -115,6 +116,9 @@ export interface RedTeamConfig {
     /** When set, this label is added to all created issues (used in demo mode) */
     demoLabel?: string;
   };
+
+  /** Persona for issue writing style: "default" | "chuck_norris" */
+  persona: PersonaName;
 }
 
 // ─── Dedup Result ────────────────────────────────────────────────────

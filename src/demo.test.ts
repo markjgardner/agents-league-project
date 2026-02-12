@@ -105,6 +105,7 @@ describe("demo fingerprint stability", () => {
         assignees: [], autoClose: false,
         demoLabel: "demo:redteam-example",
       },
+      persona: "default",
     };
 
     const configWithoutDemo: RedTeamConfig = {
