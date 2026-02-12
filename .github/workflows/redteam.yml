@@ -27,4 +27,5 @@ jobs:
       - name: Run Security Scan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REDTEAM_PERSONA: chuck_norris
         run: npx tsx src/index.ts
