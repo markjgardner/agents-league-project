@@ -5,7 +5,16 @@ import { processIssues } from "./github/issues.js";
 import { ensureLabels } from "./github/labels.js";
 import { logger } from "./utils/logger.js";
 import { DEMO_ISSUE_LABEL } from "./constants.js";
-import type { Scanner, Finding, IssueResult } from "./types.js";
+import type { Scanner, Finding, RawFinding, IssueResult } from "./types.js";
+import {
+  LLMAttackPlanner,
+  StubProvider,
+  OpenAICompatibleProvider,
+  isLLMPlannerEnabled,
+  runStaticChecks,
+  hypothesisToFinding,
+} from "./llm_planner/index.js";
+import type { LLMPlannerConfig } from "./llm_planner/index.js";
 
 async function main(): Promise<void> {
   const noIssues = process.argv.includes("--no-issues");
@@ -43,12 +52,52 @@ async function main(): Promise<void> {
   } catch { /* scanner not implemented yet */ }
 
   // 2. Run available scanners
-  const allRaw = [];
+  const allRaw: RawFinding[] = [];
   for (const scanner of scanners) {
     if (scanner.isAvailable(config)) {
       logger.info("Running scanner", { scanner: scanner.name });
       const findings = await scanner.scan(config);
       allRaw.push(...findings);
+    }
+  }
+
+  // 2b. Run LLM planner stage (optional — behind feature flag)
+  if (config.llmPlanner && isLLMPlannerEnabled(config.llmPlanner)) {
+    logger.info("LLM planner stage enabled, generating hypotheses");
+    const plannerConfig = config.llmPlanner as LLMPlannerConfig;
+    const provider = plannerConfig.apiKey
+      ? new OpenAICompatibleProvider()
+      : new StubProvider("{}");
+    const planner = new LLMAttackPlanner(provider, plannerConfig);
+
+    try {
+      const hypotheses = await planner.generateHypotheses(config.repoRoot);
+      logger.info("LLM planner: checking hypotheses", { count: hypotheses.length });
+
+      for (const hypothesis of hypotheses) {
+        const checkResult = runStaticChecks(hypothesis, config.repoRoot);
+        const finding = hypothesisToFinding(
+          hypothesis,
+          checkResult,
+          config.issues.demoLabel,
+        );
+        if (finding) {
+          allRaw.push(finding);
+          logger.info("LLM planner: evidence confirmed for hypothesis", {
+            id: hypothesis.id,
+            title: hypothesis.title,
+          });
+        } else {
+          logger.info("LLM planner: no evidence for hypothesis, skipping", {
+            id: hypothesis.id,
+          });
+        }
+      }
+    } catch (err: unknown) {
+      logger.error("LLM planner stage failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      // Continue with deterministic scanner results
     }
   }
 

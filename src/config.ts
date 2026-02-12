@@ -1,6 +1,7 @@
 import { RedTeamConfig, Severity, PersonaName } from "./types.js";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { loadLLMPlannerConfig } from "./llm_planner/config.js";
 
 const DEFAULT_CONFIG_PATH = "redteam.config.json";
 
@@ -79,6 +80,9 @@ export function loadConfig(overridePath?: string): RedTeamConfig {
     persona: (process.env.REDTEAM_PERSONA as PersonaName) ??
       (fileConfig.persona as PersonaName) ??
       DEFAULT_CONFIG.persona,
+    llmPlanner: loadLLMPlannerConfig(
+      (fileConfig.llmPlanner as Partial<RedTeamConfig["llmPlanner"]>) ?? undefined,
+    ),
   };
 }
 
