@@ -2,6 +2,7 @@ import { Octokit } from "@octokit/rest";
 import { Finding, DedupResult, IssueResult, RedTeamConfig, Severity } from "../types.js";
 import { createOctokit } from "./labels.js";
 import { logger } from "../utils/logger.js";
+import { getPersona, Persona } from "../persona.js";
 
 // ─── Fingerprint marker embedded in issue body ───────────────────────
 
@@ -11,7 +12,8 @@ const FINGERPRINT_REGEX = /<!-- redteam-fingerprint:([a-f0-9]{64}) -->/;
 
 // ─── Issue Body Template ─────────────────────────────────────────────
 
-function buildIssueBody(finding: Finding): string {
+function buildIssueBody(finding: Finding, persona?: Persona): string {
+  const tone = persona ?? getPersona("default");
   const locationStr = finding.location.startLine
     ? `\`${finding.location.path}:${finding.location.startLine}\``
     : `\`${finding.location.path}\``;
@@ -27,8 +29,12 @@ function buildIssueBody(finding: Finding): string {
       ? finding.references.map((r) => `- ${r}`).join("\n")
       : "_None_";
 
-  return `${FINGERPRINT_PREFIX}${finding.fingerprint}${FINGERPRINT_SUFFIX}
+  const opening = tone.openingParagraph(finding);
+  const openingBlock = opening ? `\n${opening}\n` : "";
+  const closing = tone.closingLine();
 
+  return `${FINGERPRINT_PREFIX}${finding.fingerprint}${FINGERPRINT_SUFFIX}
+${openingBlock}
 ## ${finding.title}
 
 | Field | Value |
@@ -39,13 +45,13 @@ function buildIssueBody(finding: Finding): string {
 | **Category** | \`${finding.category}\` |
 | **Location** | ${locationStr} |
 
-### Evidence
+${tone.evidenceHeader()}
 
 \`\`\`
 ${safeEvidence}
 \`\`\`
 
-### Remediation
+${tone.remediationHeader()}
 
 ${finding.remediation}
 
@@ -55,6 +61,7 @@ ${refs}
 
 ---
 *Filed by RedTeam Agent • Finding ID: \`${finding.id}\` • Fingerprint: \`${finding.fingerprint.slice(0, 12)}\`*
+${closing}
 `;
 }
 
@@ -122,6 +129,7 @@ export async function createIssueForFinding(
 ): Promise<IssueResult> {
   const octokit = createOctokit(config);
   const { owner, repo } = config.github;
+  const persona = getPersona(config.persona);
 
   const labels = [
     "security",
@@ -133,8 +141,8 @@ export async function createIssueForFinding(
   const response = await octokit.issues.create({
     owner,
     repo,
-    title: `[${finding.severity.toUpperCase()}] ${finding.title}`,
-    body: buildIssueBody(finding),
+    title: persona.issueTitle(finding),
+    body: buildIssueBody(finding, persona),
     labels,
     assignees: config.issues.assignees,
   });

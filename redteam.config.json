@@ -37,5 +37,6 @@
     "maxPerRun": 10,
     "assignees": [],
     "autoClose": false
-  }
+  },
+  "persona": "default"
 }
